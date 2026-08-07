@@ -5,6 +5,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag to publish (e.g. v0.1.0)"
+        required: true
+        default: "v0.1.0"
 
 permissions:
   contents: write # create GitHub Releases
@@ -37,9 +42,13 @@ jobs:
       # --- Determine a version string (git tag, or short SHA for manual runs) ---
       - name: Resolve version
         id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${INPUT_VERSION}" ]; then
+            echo "version=${INPUT_VERSION}" >> "$GITHUB_OUTPUT"
           else
             echo "version=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
           fi
@@ -76,13 +85,15 @@ jobs:
               -czf "dist/gold-waff-${{ steps.version.outputs.version }}.tar.gz" \
               app requirements.txt Dockerfile README.md LICENSE
 
-      # --- Publish the GitHub Release (tag runs only) ---
+      # --- Publish the GitHub Release (tag push or manual dispatch) ---
+      # On a manual dispatch the tag does not yet exist; action-gh-release
+      # creates it at the checked-out commit from tag_name.
       - name: Create GitHub Release
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
           name: Generator Service Orchestration ${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.version.outputs.version }}
           draft: false
           prerelease: false
           files: dist/gold-waff-${{ steps.version.outputs.version }}.tar.gz
