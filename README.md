@@ -41,6 +41,34 @@ Run the tests:
 pytest -q
 ```
 
+### Run with Docker
+
+```bash
+docker build -t gold-waff .
+docker run -p 8000:8000 gold-waff
+```
+
+## Releases & CI
+
+Two GitHub Actions workflows live in `.github/workflows/`:
+
+- **`main.yml` (CI)** — runs `pytest` on Python 3.10–3.12 for every push and pull request.
+- **`release.yml` (Release)** — on a `v*` tag (or manual dispatch): runs the tests, builds
+  and pushes a container image to the GitHub Container Registry
+  (`ghcr.io/<owner>/gold-waff`), and publishes a GitHub Release with a source archive
+  attached. Cut a release by pushing a tag:
+
+  ```bash
+  git tag v1.0.0 && git push origin v1.0.0
+  ```
+
+  Then pull and run the published image:
+
+  ```bash
+  docker pull ghcr.io/<owner>/gold-waff:v1.0.0
+  docker run -p 8000:8000 ghcr.io/<owner>/gold-waff:v1.0.0
+  ```
+
 ## Core services (the 10 building blocks)
 
 | # | Service | Where |
