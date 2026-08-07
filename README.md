@@ -48,6 +48,12 @@ docker build -t gold-waff .
 docker run -p 8000:8000 gold-waff
 ```
 
+Or one command with Compose (builds + serves on `http://localhost:8000`):
+
+```bash
+docker compose up --build
+```
+
 ## Releases & CI
 
 Two GitHub Actions workflows live in `.github/workflows/`:
@@ -137,9 +143,17 @@ invoicing time.
 
 `android/` contains a small native **Jetpack Compose** client for the API — a read-only
 mobile dashboard with three tabs (KPI **Dashboard**, **Work Orders**, **Generators**) and
-an editable server URL (settings icon; default `http://10.0.2.2:8000`, the emulator alias
-for a backend on the host). It talks to the same endpoints documented above via
-Retrofit + kotlinx.serialization.
+an editable server URL (settings icon; default `http://localhost:8000`). It talks to the
+same endpoints documented above via Retrofit + kotlinx.serialization.
+
+The app opens on a **login screen**; enter access code **`926696`** to reach the dashboard
+(a client-side demo gate — the backend itself stays open).
+
+**Reaching the backend from a device/emulator:** on Android, `localhost` means the *device*,
+not your computer. To make the default `http://localhost:8000` reach a backend running on
+your machine, run `adb reverse tcp:8000 tcp:8000`. Alternatively, open the in-app settings and
+set the URL to `http://10.0.2.2:8000` (the emulator→host alias), or your machine's LAN IP for a
+physical device.
 
 Build the debug APK locally:
 

@@ -1,0 +1,11 @@
+# One-command local run of the Generator Service Orchestration API.
+#   docker compose up --build
+# Serves the FastAPI app (with seeded data) on http://localhost:8000
+# Interactive docs at http://localhost:8000/docs
+services:
+  api:
+    build: .
+    image: gold-waff:local
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

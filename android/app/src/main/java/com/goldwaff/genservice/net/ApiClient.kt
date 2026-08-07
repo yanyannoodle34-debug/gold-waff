@@ -13,7 +13,10 @@ import java.util.concurrent.TimeUnit
  */
 object ApiClient {
 
-    const val DEFAULT_BASE_URL = "http://10.0.2.2:8000/"
+    // Default to localhost. On a device/emulator "localhost" is the device itself,
+    // so to reach a backend on the host run `adb reverse tcp:8000 tcp:8000`, or set
+    // the URL in-app to http://10.0.2.2:8000 (the emulator->host alias).
+    const val DEFAULT_BASE_URL = "http://localhost:8000/"
 
     private val json = Json {
         ignoreUnknownKeys = true

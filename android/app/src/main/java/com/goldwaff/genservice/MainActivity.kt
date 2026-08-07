@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goldwaff.genservice.ui.AppViewModel
 import com.goldwaff.genservice.ui.DashboardScreen
 import com.goldwaff.genservice.ui.GeneratorsScreen
+import com.goldwaff.genservice.ui.LoginScreen
 import com.goldwaff.genservice.ui.ServerUrlDialog
 import com.goldwaff.genservice.ui.WorkOrdersScreen
 import com.goldwaff.genservice.ui.theme.GoldWaffGenServiceTheme
@@ -55,6 +56,12 @@ private enum class Tab(val label: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppRoot(vm: AppViewModel = viewModel()) {
+    var authenticated by remember { mutableStateOf(false) }
+    if (!authenticated) {
+        LoginScreen(onAuthenticated = { authenticated = true })
+        return
+    }
+
     var tab by remember { mutableStateOf(Tab.DASHBOARD) }
     var showSettings by remember { mutableStateOf(false) }
 
