@@ -1,0 +1,92 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - "android-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: android
+
+jobs:
+  build:
+    name: Build APK & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Fix Gradle wrapper jar
+        run: |
+          mkdir -p gradle/wrapper
+          curl -sLo gradle/wrapper/gradle-wrapper.jar \
+            https://raw.githubusercontent.com/gradle/gradle/v8.12.0/gradle/wrapper/gradle-wrapper.jar
+
+      - name: Normalize gradlew
+        run: |
+          sed -i -e 's/\r$//' gradlew
+          chmod +x gradlew
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          validate-wrappers: false
+
+      - name: Generate debug keystore
+        run: |
+          if [ ! -f debug.keystore ]; then
+            keytool -genkey -v -keystore debug.keystore -storepass android \
+              -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 \
+              -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          mkdir -p ~/.android
+          cp debug.keystore ~/.android/debug.keystore || true
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Locate APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "No APK produced!" >&2
+            exit 1
+          fi
+          echo "APK_PATH=android/$APK_PATH" >> "$GITHUB_ENV"
+          echo "Found APK at android/$APK_PATH"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-waff-android-apk
+          path: ${{ env.APK_PATH }}
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.APK_PATH }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('Generator Service Android {0}', github.ref_name) || 'Generator Service Android (dev build)' }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest-android' }}
+          draft: false
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          make_latest: false
+          body: |
+            Android dashboard client for the Generator Service Orchestration API
+            (read-only: KPI dashboard, work orders, generators). Set the server URL
+            in-app (default `http://10.0.2.2:8000` for an emulator against a host backend).
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

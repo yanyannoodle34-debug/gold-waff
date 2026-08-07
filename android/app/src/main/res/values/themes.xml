@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Framework parent so no Material XML theme dependency is needed; the real
+         look is a Compose Material3 theme (see ui/theme). -->
+    <style name="Theme.GoldWaffGenService" parent="android:Theme.DeviceDefault.NoActionBar" />
+</resources>

@@ -133,6 +133,33 @@ curl -s -X POST localhost:8000/work-orders/WO-000001/close -d '{"labor_hours": 1
 The most favorable active contract for a generator is applied automatically at
 invoicing time.
 
+## Android app (mobile dashboard)
+
+`android/` contains a small native **Jetpack Compose** client for the API — a read-only
+mobile dashboard with three tabs (KPI **Dashboard**, **Work Orders**, **Generators**) and
+an editable server URL (settings icon; default `http://10.0.2.2:8000`, the emulator alias
+for a backend on the host). It talks to the same endpoints documented above via
+Retrofit + kotlinx.serialization.
+
+Build the debug APK locally:
+
+```bash
+cd android
+./gradlew assembleDebug
+# APK at android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+CI/CD for the app:
+
+- **`android-ci.yml`** builds the debug APK on any push/PR touching `android/**`.
+- **`android-release.yml`** publishes the APK to a GitHub Release on an **`android-v*`**
+  tag (or manual dispatch). The `android-v*` namespace keeps APK releases separate from the
+  service's `v*` Docker/GitHub releases. Cut one with:
+
+  ```bash
+  git tag android-v0.1.0 && git push origin android-v0.1.0
+  ```
+
 ## Project layout
 
 ```
