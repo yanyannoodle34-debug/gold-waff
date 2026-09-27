@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from ..deps import get_orchestrator, not_found
+from ..deps import get_orchestrator
 from ..models import Priority, WorkOrder, WorkOrderType
 from ..orchestrator import ServiceOrchestrator
 
@@ -33,11 +33,7 @@ def preview_dispatch(
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> List[CandidateOut]:
     """Return ranked technician candidates without creating a work order."""
-    try:
-        generator = orch.store.require_generator(body.generator_id)
-    except KeyError as exc:
-        raise not_found(str(exc))
-
+    generator = orch.store.require_generator(body.generator_id)
     probe = WorkOrder(
         id="PREVIEW",
         generator_id=generator.id,

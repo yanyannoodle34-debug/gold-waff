@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.models import PartCategory, Priority, RequiredPart, WorkOrderType
+from app.models import PartCategory, RequiredPart, WorkOrderType
 
 
 def test_cmc_invoice_fully_covered(orch, store):

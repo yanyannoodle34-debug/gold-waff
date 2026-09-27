@@ -37,6 +37,7 @@ from .models import (
     WorkOrder,
     WorkOrderStatus,
     WorkOrderType,
+    utcnow,
 )
 from .store import InMemoryStore
 
@@ -223,7 +224,7 @@ class ServiceOrchestrator:
                 work_order_type=WorkOrderType.PREVENTIVE,
                 priority=Priority.NORMAL,
                 required_parts=self.maintenance.standard_pm_parts(),
-                scheduled_date=datetime.utcnow(),
+                scheduled_date=utcnow(),
             )
             results.append(result)
         self.store.log(
@@ -306,7 +307,7 @@ class ServiceOrchestrator:
             ServiceHistoryEntry(
                 work_order_id=wo.id,
                 type=wo.type,
-                performed_at=datetime.utcnow(),
+                performed_at=utcnow(),
                 running_hours=performed_hours,
                 technician_id=wo.assigned_technician_id,
                 summary=summary or f"{wo.type.value} completed",
@@ -317,7 +318,7 @@ class ServiceOrchestrator:
             generator.last_pm_hours = performed_hours
 
         wo.status = WorkOrderStatus.CLOSED
-        wo.closed_at = datetime.utcnow()
+        wo.closed_at = utcnow()
 
         # Free the assigned technician.
         if wo.assigned_technician_id:

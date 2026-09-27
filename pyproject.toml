@@ -1,0 +1,33 @@
+[tool.ruff]
+# Minimum supported runtime; keeps lint feedback consistent with CI's oldest
+# Python in the test matrix.
+target-version = "py310"
+line-length = 88
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+# A pragmatic, low-noise set focused on real defects rather than style churn:
+#   E/W  pycodestyle    F  pyflakes         I  isort (import order)
+#   B    flake8-bugbear C4 comprehensions   SIM  flake8-simplify
+# `UP` (pyupgrade) is intentionally left out for now: this codebase uses
+# `typing.List`/`Optional` with `from __future__ import annotations`, and
+# modernizing those hints is a large, separate change. Enable it later if
+# desired.
+select = ["E", "W", "F", "I", "B", "C4", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency/parameter markers are called in argument defaults by
+# design; that is not the B008 mutable-default hazard.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Form",
+    "fastapi.File",
+]

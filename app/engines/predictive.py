@@ -17,7 +17,6 @@ from ..models import (
     WorkOrderType,
 )
 
-
 # Threshold constants (typical diesel genset operating envelopes).
 MIN_OIL_PRESSURE_BAR = 1.5
 MAX_COOLANT_TEMP_C = 98.0

@@ -14,7 +14,6 @@ from ..deps import (
     ServiceRequestIn,
     SignatureIn,
     get_orchestrator,
-    not_found,
 )
 from ..models import Invoice, RequiredPart, WorkOrder
 from ..orchestrator import ServiceOrchestrator
@@ -39,25 +38,19 @@ def create_service_request(
         RequiredPart(category=p.category, quantity=p.quantity)
         for p in body.required_parts
     ]
-    try:
-        result = orch.create_service_request(
-            generator_id=body.generator_id,
-            work_order_type=body.type,
-            priority=body.priority,
-            required_parts=required,
-            scheduled_date=body.scheduled_date,
-        )
-    except KeyError as exc:
-        raise not_found(str(exc))
+    result = orch.create_service_request(
+        generator_id=body.generator_id,
+        work_order_type=body.type,
+        priority=body.priority,
+        required_parts=required,
+        scheduled_date=body.scheduled_date,
+    )
     return DispatchResponse.from_result(result)
 
 
 @router.get("/{work_order_id}", response_model=WorkOrder)
 def get_work_order(work_order_id: str) -> WorkOrder:
-    wo = get_store().work_orders.get(work_order_id)
-    if wo is None:
-        raise not_found(f"Unknown work order: {work_order_id}")
-    return wo
+    return get_store().require_work_order(work_order_id)
 
 
 # -- field-technician transitions -----------------------------------------
@@ -69,10 +62,7 @@ def record_running_hours(
     body: RunningHoursIn,
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> WorkOrder:
-    try:
-        return orch.record_running_hours(work_order_id, body.hours)
-    except KeyError as exc:
-        raise not_found(str(exc))
+    return orch.record_running_hours(work_order_id, body.hours)
 
 
 @router.post("/{work_order_id}/faults", response_model=WorkOrder)
@@ -81,10 +71,7 @@ def add_fault(
     body: FaultIn,
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> WorkOrder:
-    try:
-        return orch.add_fault(work_order_id, body.code, body.description)
-    except KeyError as exc:
-        raise not_found(str(exc))
+    return orch.add_fault(work_order_id, body.code, body.description)
 
 
 @router.post("/{work_order_id}/replace-part", response_model=WorkOrder)
@@ -93,10 +80,7 @@ def replace_part(
     body: ReplacePartIn,
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> WorkOrder:
-    try:
-        return orch.replace_part(work_order_id, body.reservation_id)
-    except KeyError as exc:
-        raise not_found(str(exc))
+    return orch.replace_part(work_order_id, body.reservation_id)
 
 
 @router.post("/{work_order_id}/signature", response_model=WorkOrder)
@@ -105,10 +89,7 @@ def capture_signature(
     body: SignatureIn,
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> WorkOrder:
-    try:
-        return orch.capture_signature(work_order_id, body.signature)
-    except KeyError as exc:
-        raise not_found(str(exc))
+    return orch.capture_signature(work_order_id, body.signature)
 
 
 @router.post("/{work_order_id}/close", response_model=Invoice)
@@ -118,11 +99,8 @@ def close_work_order(
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> Invoice:
     """Close the work order and generate its invoice."""
-    try:
-        return orch.close_work_order(
-            work_order_id,
-            labor_hours=body.labor_hours,
-            summary=body.summary,
-        )
-    except KeyError as exc:
-        raise not_found(str(exc))
+    return orch.close_work_order(
+        work_order_id,
+        labor_hours=body.labor_hours,
+        summary=body.summary,
+    )

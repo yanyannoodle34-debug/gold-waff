@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from app.models import PartCategory, WorkOrderStatus, WorkOrderType
-
+from app.models import WorkOrderStatus, WorkOrderType
 
 # ---------------------------------------------------------------------------
 # Emergency breakdown, end to end over the REST API
@@ -53,7 +52,8 @@ def test_emergency_breakdown_end_to_end(client):
         f"/work-orders/{wo_id}/signature", json={"signature": "S. Cole"}
     ).status_code == 200
     close = client.post(
-        f"/work-orders/{wo_id}/close", json={"labor_hours": 1.5, "summary": "Battery replaced"}
+        f"/work-orders/{wo_id}/close",
+        json={"labor_hours": 1.5, "summary": "Battery replaced"},
     )
     assert close.status_code == 200
     invoice = close.json()
@@ -97,7 +97,9 @@ def test_daily_scheduler_targets_only_due_generators(client):
 
 def test_pm_close_resets_interval(orch, store):
     results = orch.schedule_preventive_maintenance()
-    wo = next(r.work_order for r in results if r.work_order.generator_id == "GEN-000001")
+    wo = next(
+        r.work_order for r in results if r.work_order.generator_id == "GEN-000001"
+    )
     generator = store.generators["GEN-000001"]
     orch.record_running_hours(wo.id, 1320.0)
     orch.close_work_order(wo.id, labor_hours=2.0)
