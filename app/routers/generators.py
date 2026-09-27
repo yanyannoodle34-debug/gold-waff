@@ -8,7 +8,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from ..deps import get_orchestrator, not_found
+from ..deps import get_orchestrator
 from ..models import (
     Generator,
     GeoLocation,
@@ -45,8 +45,7 @@ def list_generators() -> List[Generator]:
 @router.post("", response_model=Generator, status_code=201)
 def register_generator(body: GeneratorIn) -> Generator:
     store = get_store()
-    if body.customer_id not in store.customers:
-        raise not_found(f"Unknown customer: {body.customer_id}")
+    store.require_customer(body.customer_id)
     generator = Generator(id=store.next_id("GEN"), **body.model_dump())
     store.generators[generator.id] = generator
     store.log(
@@ -57,18 +56,12 @@ def register_generator(body: GeneratorIn) -> Generator:
 
 @router.get("/{generator_id}", response_model=Generator)
 def get_generator(generator_id: str) -> Generator:
-    generator = get_store().generators.get(generator_id)
-    if generator is None:
-        raise not_found(f"Unknown generator: {generator_id}")
-    return generator
+    return get_store().require_generator(generator_id)
 
 
 @router.get("/{generator_id}/history", response_model=List[ServiceHistoryEntry])
 def get_history(generator_id: str) -> List[ServiceHistoryEntry]:
-    generator = get_store().generators.get(generator_id)
-    if generator is None:
-        raise not_found(f"Unknown generator: {generator_id}")
-    return generator.service_history
+    return get_store().require_generator(generator_id).service_history
 
 
 @router.post(
@@ -82,7 +75,4 @@ def ingest_reading(
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> List[MaintenanceRecommendation]:
     """Submit an IoT sensor reading; returns predictive recommendations."""
-    try:
-        return orch.ingest_reading(generator_id, reading)
-    except KeyError as exc:
-        raise not_found(str(exc))
+    return orch.ingest_reading(generator_id, reading)

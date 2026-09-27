@@ -11,7 +11,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from ..deps import BreakdownRequest, get_orchestrator, not_found
+from ..deps import BreakdownRequest, get_orchestrator
 from ..models import Incident, RequiredPart
 from ..orchestrator import ServiceOrchestrator
 from ..schemas import DispatchResponse
@@ -34,13 +34,10 @@ def report_breakdown(
         RequiredPart(category=p.category, quantity=p.quantity)
         for p in body.required_parts
     ]
-    try:
-        result = orch.report_breakdown(
-            generator_id=body.generator_id,
-            description=body.description,
-            priority=body.priority,
-            required_parts=required,
-        )
-    except KeyError as exc:
-        raise not_found(str(exc))
+    result = orch.report_breakdown(
+        generator_id=body.generator_id,
+        description=body.description,
+        priority=body.priority,
+        required_parts=required,
+    )
     return DispatchResponse.from_result(result)

@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 from app.main import create_app
 from app.orchestrator import ServiceOrchestrator
 from app.seed import seed_store
-from app.store import InMemoryStore, get_store, set_store
+from app.store import InMemoryStore, set_store
 
 
 @pytest.fixture

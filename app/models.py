@@ -7,11 +7,16 @@ contracts, incidents, invoices, and the supporting value objects.
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
+
+
+def utcnow() -> datetime:
+    """Timezone-aware UTC timestamp (replacement for deprecated datetime.utcnow)."""
+    return datetime.now(timezone.utc)
 
 
 # ---------------------------------------------------------------------------
@@ -116,7 +121,7 @@ class FaultRecord(BaseModel):
 
     code: str
     description: str
-    recorded_at: datetime = Field(default_factory=datetime.utcnow)
+    recorded_at: datetime = Field(default_factory=utcnow)
 
 
 # ---------------------------------------------------------------------------
@@ -203,7 +208,7 @@ class PurchaseRequest(BaseModel):
     category: PartCategory
     quantity: int
     reason: str = "Insufficient stock"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
 
 
 class WorkOrder(BaseModel):
@@ -228,7 +233,7 @@ class WorkOrder(BaseModel):
     incident_id: Optional[str] = None
     invoice_id: Optional[str] = None
     notes: str = ""
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
     closed_at: Optional[datetime] = None
 
 
@@ -258,7 +263,7 @@ class Incident(BaseModel):
     description: str
     priority: Priority
     work_order_id: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
 
 
 class InvoiceLine(BaseModel):
@@ -284,7 +289,7 @@ class Invoice(BaseModel):
     total: float = 0.0
     billable: bool = True
     contract_id: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
 
 
 class MaintenanceRecommendation(BaseModel):

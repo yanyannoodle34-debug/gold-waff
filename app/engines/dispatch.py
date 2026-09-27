@@ -15,7 +15,6 @@ from typing import Dict, List, Optional
 from ..models import Generator, Priority, Technician, WorkOrder, WorkOrderType
 from ..store import InMemoryStore
 
-
 # Skills a work order type requires a technician to hold.
 REQUIRED_SKILLS: Dict[WorkOrderType, List[str]] = {
     WorkOrderType.PREVENTIVE: ["mechanical"],

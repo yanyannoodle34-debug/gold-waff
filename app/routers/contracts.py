@@ -6,7 +6,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from ..deps import get_orchestrator, not_found
+from ..deps import get_orchestrator
 from ..models import Contract, Coverage
 from ..orchestrator import ServiceOrchestrator
 from ..store import get_store
@@ -25,8 +25,5 @@ def check_coverage(
     orch: ServiceOrchestrator = Depends(get_orchestrator),
 ) -> Coverage:
     """Return the best active contract coverage for a generator today."""
-    try:
-        generator = orch.store.require_generator(generator_id)
-    except KeyError as exc:
-        raise not_found(str(exc))
+    generator = orch.store.require_generator(generator_id)
     return orch.contracts.coverage(generator.customer_id, generator.id)

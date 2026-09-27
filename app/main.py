@@ -6,7 +6,8 @@ is immediately usable with representative data.
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from . import __version__
 from .routers import (
@@ -45,6 +46,18 @@ def create_app(seed: bool = True) -> FastAPI:
         description=DESCRIPTION,
         version=__version__,
     )
+
+    @app.exception_handler(KeyError)
+    async def _handle_missing_entity(request: Request, exc: KeyError) -> JSONResponse:
+        """Map store lookup misses (raised as KeyError) to a 404 response.
+
+        The store's ``require_*`` helpers raise ``KeyError`` for unknown ids.
+        Handling it here gives every endpoint a consistent 404 without each
+        route needing its own try/except.
+        """
+        # KeyError stringifies with surrounding quotes; strip them for a clean message.
+        detail = str(exc.args[0]) if exc.args else "Not found"
+        return JSONResponse(status_code=404, content={"detail": detail})
 
     for module in (
         customers,

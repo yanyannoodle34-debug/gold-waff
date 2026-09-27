@@ -52,7 +52,9 @@ docker run -p 8000:8000 gold-waff
 
 Two GitHub Actions workflows live in `.github/workflows/`:
 
-- **`main.yml` (CI)** — runs `pytest` on Python 3.10–3.12 for every push and pull request.
+- **`main.yml` (CI)** — lints with [`ruff`](https://docs.astral.sh/ruff/) and runs
+  `pytest` on Python 3.10–3.12 for every push and pull request. Run the same checks
+  locally with `ruff check .` and `pytest -q` (lint config lives in `pyproject.toml`).
 - **`release.yml` (Release)** — on a `v*` tag (or manual dispatch): runs the tests, builds
   and pushes a container image to the GitHub Container Registry
   (`ghcr.io/<owner>/gold-waff`), and publishes a GitHub Release with a source archive
